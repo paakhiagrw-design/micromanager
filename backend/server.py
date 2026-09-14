@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
+
 load_dotenv()
+
 import json
-import os
 import sys
 
 from fastapi import FastAPI, HTTPException
@@ -41,7 +42,6 @@ from app.tools import reset_current_meeting, set_current_meeting
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
-
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
@@ -58,17 +58,11 @@ app = FastAPI(
 )
 
 
+# The frontend is hosted separately on Vercel and does not use backend cookies.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "http://127.0.0.1:5501",
-        "http://localhost:5501",
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -103,7 +97,7 @@ class TaskMeetingRequest(BaseModel):
     scheduled_at: str
 
 
-def clean_text_for_agent(text):
+def clean_text_for_agent(text: str) -> str:
     return (
         text.replace("“", '"')
         .replace("”", '"')
@@ -124,21 +118,20 @@ def home():
     }
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/process-meeting")
 def process_meeting(request: MeetingRequest):
     transcript = clean_text_for_agent(request.transcript.strip())
-
     if not transcript:
-        raise HTTPException(
-            status_code=400,
-            detail="Transcript cannot be empty.",
-        )
+        raise HTTPException(status_code=400, detail="Transcript cannot be empty.")
 
     meeting_id = create_meeting(transcript)
     token = set_current_meeting(meeting_id)
-
     current_tasks = get_all_tasks()[:50]
-
     compact_state = [
         {
             "id": task["id"],
@@ -159,7 +152,6 @@ def process_meeting(request: MeetingRequest):
 
     try:
         meeting_agent(prompt)
-
         created_followups = generate_followups_from_tasks()
 
         if created_followups > 0:
@@ -170,7 +162,6 @@ def process_meeting(request: MeetingRequest):
             )
 
         risk = calculate_project_risk()
-
         create_activity(
             "risk_recalculated",
             "Project risk recalculated",
@@ -178,7 +169,6 @@ def process_meeting(request: MeetingRequest):
         )
 
         tasks = get_tasks_for_meeting(meeting_id)
-
         create_activity(
             "meeting_processed",
             "Meeting processed",
@@ -198,19 +188,16 @@ def process_meeting(request: MeetingRequest):
             "followups": get_followups(),
             "task_meetings": get_task_meetings(),
         }
-
     except Exception as error:
         create_activity(
             "meeting_error",
             "Meeting processing failed",
             str(error),
         )
-
         raise HTTPException(
             status_code=500,
             detail=f"Meeting processing failed: {error}",
-        )
-
+        ) from error
     finally:
         reset_current_meeting(token)
 
@@ -233,9 +220,7 @@ def dashboard():
 
 @app.get("/tasks")
 def tasks():
-    return {
-        "tasks": get_all_tasks(),
-    }
+    return {"tasks": get_all_tasks()}
 
 
 @app.put("/tasks/{task_id}")
@@ -246,20 +231,16 @@ def update_task(task_id: int, request: TaskUpdateRequest):
         deadline=request.deadline,
         status=request.status,
     )
-
     if updated_task is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Task not found.",
-        )
+        raise HTTPException(status_code=404, detail="Task not found.")
 
     created_followups = generate_followups_from_tasks()
     risk = calculate_project_risk()
-
     create_activity(
         "task_updated",
         "Task updated manually",
-        f"{updated_task['task']} is now assigned to {updated_task['owner']} with status {updated_task['status']}.",
+        f"{updated_task['task']} is now assigned to {updated_task['owner']} "
+        f"with status {updated_task['status']}.",
     )
 
     if created_followups > 0:
@@ -286,23 +267,17 @@ def update_task(task_id: int, request: TaskUpdateRequest):
 
 @app.get("/activities")
 def activities():
-    return {
-        "activities": get_all_activities(),
-    }
+    return {"activities": get_all_activities()}
 
 
 @app.get("/dependencies")
 def dependencies():
-    return {
-        "dependencies": get_dependencies(),
-    }
+    return {"dependencies": get_dependencies()}
 
 
 @app.get("/participants")
 def participants(meeting_id: int | None = None):
-    return {
-        "participants": get_meeting_participants(meeting_id),
-    }
+    return {"participants": get_meeting_participants(meeting_id)}
 
 
 @app.get("/people")
@@ -317,23 +292,18 @@ def add_contact(request: ContactRequest):
     contact_type = request.contact_type.strip() or "External guest"
 
     if not name:
-        raise HTTPException(
-            status_code=400,
-            detail="Contact name is required.",
-        )
+        raise HTTPException(status_code=400, detail="Contact name is required.")
 
     contact = create_contact(
         name=name,
         email=email,
         contact_type=contact_type,
     )
-
     create_activity(
         "contact_created",
         "Contact added",
         f"{contact['name']} was added to People.",
     )
-
     return {
         "contact": contact,
         "people": get_people(),
@@ -343,29 +313,23 @@ def add_contact(request: ContactRequest):
 
 @app.get("/decisions")
 def decisions():
-    return {
-        "decisions": get_decisions(),
-    }
+    return {"decisions": get_decisions()}
 
 
 @app.put("/decisions/{decision_id}/resolve")
 def resolve(decision_id: int):
     resolve_decision(decision_id)
-
     create_activity(
         "decision_resolved",
         "Decision resolved",
         f"Decision {decision_id} resolved.",
     )
-
     risk = calculate_project_risk()
-
     create_activity(
         "risk_recalculated",
         "Project risk recalculated",
         f"Project risk is now {risk['level']} with score {risk['score']}/100.",
     )
-
     return {
         "resolved": True,
         "decision_id": decision_id,
@@ -376,28 +340,22 @@ def resolve(decision_id: int):
 
 @app.get("/risk")
 def risk():
-    return {
-        "risk": calculate_project_risk(),
-    }
+    return {"risk": calculate_project_risk()}
 
 
 @app.get("/followups")
 def followups():
-    return {
-        "followups": get_followups(),
-    }
+    return {"followups": get_followups()}
 
 
 @app.post("/followups/generate")
 def generate_followups():
     created = generate_followups_from_tasks()
-
     create_activity(
         "followups_generated",
         "Follow-ups generated",
         f"MicroManager created {created} follow-up draft(s).",
     )
-
     return {
         "created": created,
         "followups": get_followups(),
@@ -407,17 +365,12 @@ def generate_followups():
 
 @app.put("/followups/{followup_id}/status")
 def update_followup(followup_id: int, status: str):
-    update_followup_status(
-        followup_id,
-        status,
-    )
-
+    update_followup_status(followup_id, status)
     create_activity(
         "followup_updated",
         "Follow-up updated",
         f"Follow-up {followup_id} marked as {status}.",
     )
-
     return {
         "updated": True,
         "followups": get_followups(),
@@ -427,9 +380,7 @@ def update_followup(followup_id: int, status: str):
 
 @app.get("/task-meetings")
 def task_meetings():
-    return {
-        "task_meetings": get_task_meetings(),
-    }
+    return {"task_meetings": get_task_meetings()}
 
 
 @app.post("/task-meetings")
@@ -439,22 +390,11 @@ def schedule_task_meeting(request: TaskMeetingRequest):
     scheduled_at = request.scheduled_at.strip()
 
     if not title:
-        raise HTTPException(
-            status_code=400,
-            detail="Meeting title is required.",
-        )
-
+        raise HTTPException(status_code=400, detail="Meeting title is required.")
     if not meeting_link:
-        raise HTTPException(
-            status_code=400,
-            detail="Meeting link is required.",
-        )
-
+        raise HTTPException(status_code=400, detail="Meeting link is required.")
     if not scheduled_at:
-        raise HTTPException(
-            status_code=400,
-            detail="Meeting time is required.",
-        )
+        raise HTTPException(status_code=400, detail="Meeting time is required.")
 
     task_meeting_id = create_task_meeting(
         request.task_id,
@@ -462,20 +402,18 @@ def schedule_task_meeting(request: TaskMeetingRequest):
         meeting_link,
         scheduled_at,
     )
-
     create_followup(
         request.task_id,
         "Meeting reminder",
-        f"Reminder: '{title}' is scheduled for {scheduled_at}. Join here: {meeting_link}",
+        f"Reminder: '{title}' is scheduled for {scheduled_at}. "
+        f"Join here: {meeting_link}",
         "Meeting reminder",
     )
-
     create_activity(
         "meeting_scheduled",
         "Task meeting scheduled",
         f"MicroManager scheduled '{title}' and created a meeting reminder.",
     )
-
     return {
         "scheduled": True,
         "task_meeting_id": task_meeting_id,
@@ -487,17 +425,12 @@ def schedule_task_meeting(request: TaskMeetingRequest):
 
 @app.put("/task-meetings/{task_meeting_id}/status")
 def update_task_meeting(task_meeting_id: int, status: str):
-    update_task_meeting_status(
-        task_meeting_id,
-        status,
-    )
-
+    update_task_meeting_status(task_meeting_id, status)
     create_activity(
         "task_meeting_updated",
         "Task meeting updated",
         f"Meeting {task_meeting_id} marked as {status}.",
     )
-
     return {
         "updated": True,
         "task_meetings": get_task_meetings(),
@@ -508,16 +441,9 @@ def update_task_meeting(task_meeting_id: int, status: str):
 @app.get("/users/me")
 def current_user():
     user = get_user(1)
-
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found.",
-        )
-
-    return {
-        "user": user,
-    }
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"user": user}
 
 
 @app.put("/users/me")
@@ -527,24 +453,12 @@ def save_user(request: UserUpdateRequest):
     role = request.role.strip() or "Team member"
 
     if not name or not email:
-        raise HTTPException(
-            status_code=400,
-            detail="Name and email are required.",
-        )
+        raise HTTPException(status_code=400, detail="Name and email are required.")
 
-    user = update_user(
-        1,
-        name,
-        email,
-        role,
-    )
-
+    user = update_user(1, name, email, role)
     create_activity(
         "profile_updated",
         "Profile updated",
         f"{user['name']}'s profile changed.",
     )
-
-    return {
-        "user": user,
-    }
+    return {"user": user}
