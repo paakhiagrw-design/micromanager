@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroManager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">
+                <span>m</span>
+            </div>
+            <div>
+                <div class="brand-name">MicroManager</div>
+                <div class="brand-tagline">meeting to execution</div>
+            </div>
+        </div>
+
+        <div class="workspace-label">WORKSPACE</div>
+
+        <nav class="navigation">
+            <button class="nav-item active" data-page="meeting"><span>Meeting</span></button>
+            <button class="nav-item" data-page="tasks"><span>Tasks</span></button>
+            <button class="nav-item" data-page="mytasks"><span>My Tasks</span></button>
+            <button class="nav-item" data-page="people"><span>People</span></button>
+            <button class="nav-item" data-page="followups"><span>Follow-ups</span></button>
+            <button class="nav-item" data-page="meetings"><span>Task Meetings</span></button>
+            <button class="nav-item" data-page="activity"><span>Agent Activity</span></button>
+            <button class="nav-item" data-page="decisions"><span>Decision Inbox</span></button>
+            <button class="nav-item" data-page="risk"><span>Project Risk</span></button>
+        </nav>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="agent-card">
+            <div class="agent-avatar">AI</div>
+            <div class="agent-info">
+                <strong>Agent online</strong>
+                <span id="agentStatusText">Ready to execute</span>
+            </div>
+            <div class="online-dot"></div>
+        </div>
+
+        <div class="profile">
+            <div class="profile-avatar" id="profileInitial">U</div>
+            <div class="profile-info">
+                <strong id="profileName">User</strong>
+                <span id="profileRole">Team member</span>
+            </div>
+
+            <button
+                id="profileMenuButton"
+                class="profile-more"
+                type="button"
+                aria-label="Open profile menu"
+                aria-expanded="false"
+            >
+                ...
+            </button>
+
+            <div id="profileMenu" class="profile-menu hidden">
+                <button type="button" data-profile-page="user">View profile</button>
+                <button type="button" data-profile-page="settings">Settings</button>
+                <button type="button" id="logoutButton" class="danger">Log out</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow" id="topbarEyebrow">WORKSPACE / MEETING</div>
+                <h1 id="topbarTitle">Good evening, <span id="greetingName">User</span></h1>
+                <p id="topbarSubtitle">Turn conversations into actions.</p>
+            </div>
+
+            <div class="topbar-right">
+                <div class="system-status">
+                    <span class="status-pulse"></span>
+                    <span id="systemStatus">All systems operational</span>
+                </div>
+                <div class="top-avatar" id="topAvatarInitial">U</div>
+            </div>
+        </header>
+
+        <section id="page-meeting" class="content app-page">
+            <div class="hero">
+                <div class="hero-text">
+                    <div class="ai-label">MICRO MANAGER AI</div>
+                    <h2>What happened<br>in your meeting?</h2>
+                    <p>Paste your transcript and let MicroManager find the work hiding inside it.</p>
+                </div>
+
+                <div class="hero-decoration">
+                    <div class="orb orb-one"></div>
+                    <div class="orb orb-two"></div>
+                    <div class="orb orb-three"></div>
+                    <div class="floating-card floating-one">Task detected</div>
+                    <div class="floating-card floating-two">Deadline found</div>
+                </div>
+            </div>
+
+            <div class="transcript-card">
+                <div class="input-heading">
+                    <div class="input-title">
+                        <div class="document-icon">AI</div>
+                        <div>
+                            <h3>Meeting transcript</h3>
+                            <p>Paste your notes, transcript, or conversation.</p>
+                        </div>
+                    </div>
+                    <div class="ai-badge">AI READY</div>
+                </div>
+
+                <textarea
+                    id="transcript"
+                    placeholder="Try something like:
+
+Reya will finish the landing page by Friday at 5 PM.
+Paakhi will connect Firebase login by tonight.
+The demo script depends on the backend being stable first."
+                ></textarea>
+
+                <div class="input-bottom">
+                    <span id="characterCount">0 characters</span>
+                    <button id="processButton" class="process-button" type="button">
+                        Process meeting
+                    </button>
+                </div>
+            </div>
+
+            <div id="processing" class="processing-card hidden">
+                <div class="processing-icon">
+                    <div class="processing-spinner"></div>
+                </div>
+                <div>
+                    <strong>MicroManager is thinking...</strong>
+                    <p>Finding tasks, owners, deadlines and dependencies.</p>
+                </div>
+                <div class="processing-steps">
+                    <span>ANALYSING</span>
+                    <span>EXTRACTING</span>
+                </div>
+            </div>
+
+            <div id="results" class="results hidden">
+                <div class="results-header">
+                    <div>
+                        <div class="eyebrow">AI OUTPUT</div>
+                        <h2>Meeting intelligence</h2>
+                        <p>Here's what MicroManager found.</p>
+                    </div>
+
+                    <div class="result-summary">
+                        <div class="summary-number" id="taskCount">0</div>
+                        <div>
+                            <strong>Tasks detected</strong>
+                            <span>Ready for execution</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-list" id="taskList"></div>
+            </div>
+        </section>
+
+        <section id="page-tasks" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">EXECUTION</div>
+                    <h2>Tasks</h2>
+                    <p>Everything MicroManager extracted from your meetings.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="allTaskCount">0</strong>
+                    <span>Total tasks</span>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3>Active tasks</h3>
+                        <p>Owners, deadlines and current status.</p>
+                    </div>
+                </div>
+
+                <div id="tasksPageList" class="task-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">None</div>
+                        <h3>No tasks yet</h3>
+                        <p>Process a meeting to create tasks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-mytasks" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">PERSONAL WORK</div>
+                    <h2>My Tasks</h2>
+                    <p>Tasks automatically assigned to the logged-in user.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="myTaskCount">0</strong>
+                    <span>Assigned to me</span>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3>Your active work</h3>
+                        <p>MicroManager matches task owners from the transcript to your profile.</p>
+                    </div>
+                </div>
+
+                <div id="myTasksList" class="task-list">
+                    <div class="empty-state">
+                        <div class="empty-icon">None</div>
+                        <h3>No tasks assigned to you yet</h3>
+                        <p>When a transcript assigns work to you, it will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-people" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">PEOPLE</div>
+                    <h2>People and Contacts</h2>
+                    <p>Manage detected participants, teammates and external collaborators.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="peopleCount">0</strong>
+                    <span>People saved</span>
+                </div>
+            </div>
+
+            <div class="people-grid">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <h3>Add external contact</h3>
+                            <p>Add people outside your company or university.</p>
+                        </div>
+                    </div>
+
+                    <form id="contactForm" class="profile-form">
+                        <label>
+                            Name
+                            <input id="contactNameInput" type="text" placeholder="Example: Reya" required>
+                        </label>
+
+                        <label>
+                            Email optional
+                            <input id="contactEmailInput" type="email" placeholder="reya@example.com">
+                        </label>
+
+                        <label>
+                            Type
+                            <input id="contactTypeInput" type="text" value="External guest">
+                        </label>
+
+                        <button class="save-button" type="submit">Add contact</button>
+                        <span id="contactSaveMessage" class="save-message"></span>
+                    </form>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <h3>Saved people</h3>
+                            <p>Accounts and guests MicroManager can assign tasks to.</p>
+                        </div>
+                    </div>
+
+                    <div id="peopleList" class="people-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">None</div>
+                            <h3>No people yet</h3>
+                            <p>Process a meeting or add a contact manually.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-followups" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">AUTONOMOUS FOLLOW-UPS</div>
+                    <h2>Follow-ups</h2>
+                    <p>Draft reminders and next actions generated from project state.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="followupCount">0</strong>
+                    <span>Total follow-ups</span>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3>Generated follow-up queue</h3>
+                        <p>MicroManager creates these after meetings and status updates.</p>
+                    </div>
+
+                    <button id="generateFollowupsButton" class="save-button" type="button">
+                        Generate follow-ups
+                    </button>
+                </div>
+
+                <div id="followupList" class="list-stack">
+                    <div class="empty-state">
+                        <div class="empty-icon">None</div>
+                        <h3>No follow-ups yet</h3>
+                        <p>Process a meeting or generate follow-ups from tasks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-meetings" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">TASK MEETINGS</div>
+                    <h2>Meeting scheduler</h2>
+                    <p>Schedule follow-up meetings for blocked, risky, or important tasks.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="taskMeetingCount">0</strong>
+                    <span>Scheduled meetings</span>
+                </div>
+            </div>
+
+            <div class="people-grid">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <h3>Schedule a task meeting</h3>
+                            <p>Add a Zoom or Google Meet link and MicroManager will create a reminder.</p>
+                        </div>
+                    </div>
+
+                    <form id="taskMeetingForm" class="profile-form">
+                        <label>
+                            Task
+                            <select id="taskMeetingTaskInput" required>
+                                <option value="">Choose a task</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Meeting title
+                            <input id="taskMeetingTitleInput" type="text" placeholder="Example: Unblock login API" required>
+                        </label>
+
+                        <label>
+                            Zoom or Meet link
+                            <input id="taskMeetingLinkInput" type="url" placeholder="https://meet.google.com/..." required>
+                        </label>
+
+                        <label>
+                            Meeting date and time
+                            <input id="taskMeetingTimeInput" type="datetime-local" required>
+                        </label>
+
+                        <button class="save-button" type="submit">Schedule meeting</button>
+                        <span id="taskMeetingSaveMessage" class="save-message"></span>
+                    </form>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <h3>Scheduled task meetings</h3>
+                            <p>Meetings created around project blockers and follow-ups.</p>
+                        </div>
+                    </div>
+
+                    <div id="taskMeetingList" class="list-stack">
+                        <div class="empty-state">
+                            <div class="empty-icon">None</div>
+                            <h3>No task meetings yet</h3>
+                            <p>Schedule a meeting for a task that needs discussion.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-activity" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">AUTONOMOUS AGENT</div>
+                    <h2>Agent Activity</h2>
+                    <p>See exactly what MicroManager is doing automatically.</p>
+                </div>
+
+                <div class="live-badge">LIVE</div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3>Activity timeline</h3>
+                        <p>Tasks, updates, decisions and automated actions.</p>
+                    </div>
+                </div>
+
+                <div id="activityList" class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-dot success"></div>
+                        <div class="activity-content">
+                            <strong>MicroManager started</strong>
+                            <p>Agent is ready to process meetings.</p>
+                        </div>
+                        <span class="activity-time">Now</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-decisions" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">HUMAN IN THE LOOP</div>
+                    <h2>Decision Inbox</h2>
+                    <p>MicroManager escalates only when human judgement is needed.</p>
+                </div>
+
+                <div class="page-stat">
+                    <strong id="decisionCount">0</strong>
+                    <span>Need attention</span>
+                </div>
+            </div>
+
+            <div id="decisionList">
+                <div class="dashboard-card empty-state">
+                    <div class="empty-icon">None</div>
+                    <h3>No decisions needed</h3>
+                    <p>Deadline conflicts, blocked work and important decisions will appear here.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-risk" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">PROJECT INTELLIGENCE</div>
+                    <h2>Project Risk</h2>
+                    <p>Monitor blockers, dependencies and delivery risk.</p>
+                </div>
+
+                <div id="riskBadge" class="risk-badge low">LOW RISK</div>
+            </div>
+
+            <div class="risk-grid">
+                <div class="dashboard-card risk-score-card">
+                    <span class="card-label">PROJECT HEALTH</span>
+                    <div class="risk-score">
+                        <strong id="riskScore">100</strong>
+                        <span>/100</span>
+                    </div>
+                    <p id="riskDescription">Project is currently on track.</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <span class="card-label">RISK SIGNALS</span>
+                    <div id="riskSignals" class="risk-signals">
+                        <div class="risk-signal good">No major risks detected</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <div>
+                        <h3>Dependency impact</h3>
+                        <p>Tasks that may affect downstream work.</p>
+                    </div>
+                </div>
+
+                <div id="dependencyList">
+                    <div class="empty-state small">
+                        <p>No dependency risks detected yet.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-user" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">ACCOUNT</div>
+                    <h2>User Profile</h2>
+                    <p>Manage the person using this MicroManager workspace.</p>
+                </div>
+            </div>
+
+            <div class="profile-page-grid">
+                <div class="dashboard-card profile-summary-card">
+                    <div id="largeProfileInitial" class="large-profile-avatar">U</div>
+                    <h3 id="profilePageName">User</h3>
+                    <p id="profilePageRole">Team member</p>
+                    <span class="profile-status">Active</span>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <div>
+                            <h3>Profile details</h3>
+                            <p>These details are saved in SQLite.</p>
+                        </div>
+                    </div>
+
+                    <form id="profileForm" class="profile-form">
+                        <label>
+                            Full name
+                            <input id="profileNameInput" type="text" value="User" required>
+                        </label>
+
+                        <label>
+                            Email address
+                            <input id="profileEmailInput" type="email" value="user@example.com" required>
+                        </label>
+
+                        <label>
+                            Role
+                            <input id="profileRoleInput" type="text" value="Team member" required>
+                        </label>
+
+                        <label>
+                            Workspace
+                            <input id="profileWorkspaceInput" type="text" value="MicroManager Demo">
+                        </label>
+
+                        <button class="save-button" type="submit">Save profile</button>
+                        <span id="profileSaveMessage" class="save-message"></span>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-settings" class="content app-page hidden">
+            <div class="page-heading">
+                <div>
+                    <div class="eyebrow">ACCOUNT</div>
+                    <h2>Settings</h2>
+                    <p>Choose how MicroManager behaves for this workspace.</p>
+                </div>
+            </div>
+
+            <div class="dashboard-card settings-card">
+                <div class="setting-row">
+                    <div>
+                        <strong>Task notifications</strong>
+                        <p>Show notifications when MicroManager creates tasks.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="taskNotifications" type="checkbox" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <strong>Decision alerts</strong>
+                        <p>Alert me when a human decision is required.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="decisionAlerts" type="checkbox" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <strong>Automatic follow-ups</strong>
+                        <p>Allow the agent to prepare follow-up actions.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="automaticFollowups" type="checkbox">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <strong>Dark mode</strong>
+                        <p>Use a darker dashboard theme for low-light rooms.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="darkMode" type="checkbox">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <strong>Larger text</strong>
+                        <p>Increase text size for better readability.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="largeText" type="checkbox">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-row">
+                    <div>
+                        <strong>Reduce motion</strong>
+                        <p>Turn off extra movement and animations.</p>
+                    </div>
+                    <label class="switch">
+                        <input id="reduceMotion" type="checkbox">
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="script.js"></script>
+<script type="module" src="firebase.js"></script>
+</body>
+</html>

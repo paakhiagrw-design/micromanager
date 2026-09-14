@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>MicroManager Login</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body class="auth-body">
+
+    <main class="auth-layout">
+
+        <section class="auth-brand-panel">
+
+            <div class="auth-logo">
+                m
+            </div>
+
+            <p class="auth-eyebrow">
+                MEETING TO EXECUTION
+            </p>
+
+            <h1>
+                Turn conversations into completed work.
+            </h1>
+
+            <p class="auth-description">
+                MicroManager extracts tasks, owners, deadlines,
+                dependencies and decisions directly from your meetings.
+            </p>
+
+            <div class="auth-feature-list">
+
+                <div>
+                    <span>Done</span>
+                    Automatic task extraction
+                </div>
+
+                <div>
+                    <span>Track</span>
+                    Dependency and delay tracking
+                </div>
+
+                <div>
+                    <span>Decide</span>
+                    Human decisions only when necessary
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="auth-form-panel">
+
+            <div class="auth-card">
+
+                <div class="auth-card-heading">
+
+                    <div class="auth-mobile-logo">
+                        m
+                    </div>
+
+                    <p class="auth-eyebrow">
+                        WELCOME TO MICROMANAGER
+                    </p>
+
+                    <h2 id="authTitle">
+                        Sign in to your workspace
+                    </h2>
+
+                    <p id="authSubtitle">
+                        Enter your details to continue.
+                    </p>
+
+                </div>
+
+                <button
+                    id="googleButton"
+                    class="google-auth-button"
+                    type="button"
+                >
+                    <span class="google-icon">
+                        G
+                    </span>
+
+                    Continue with Google
+                </button>
+
+                <div class="auth-divider">
+
+                    <span></span>
+
+                    <p>
+                        or continue with email
+                    </p>
+
+                    <span></span>
+
+                </div>
+
+                <form id="authForm">
+
+                    <div
+                        id="nameField"
+                        class="auth-field hidden"
+                    >
+
+                        <label for="name">
+                            Full name
+                        </label>
+
+                        <input
+                            id="name"
+                            type="text"
+                            placeholder="Your name"
+                            autocomplete="name"
+                        >
+
+                    </div>
+
+                    <div class="auth-field">
+
+                        <label for="email">
+                            Email address
+                        </label>
+
+                        <input
+                            id="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="auth-field">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <input
+                            id="password"
+                            type="password"
+                            placeholder="At least 6 characters"
+                            minlength="6"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                    </div>
+
+                    <p
+                        id="authMessage"
+                        class="auth-message"
+                    ></p>
+
+                    <button
+                        id="authSubmitButton"
+                        class="auth-submit-button"
+                        type="submit"
+                    >
+                        Sign in
+                    </button>
+
+                </form>
+
+                <p class="auth-switch-text">
+
+                    <span id="authSwitchQuestion">
+                        Don't have an account?
+                    </span>
+
+                    <button
+                        id="authSwitchButton"
+                        type="button"
+                    >
+                        Create account
+                    </button>
+
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script
+        type="module"
+        src="login.js"
+    ></script>
+
+</body>
+
+</html>
