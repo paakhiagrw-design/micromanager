@@ -1,0 +1,8 @@
+backend/.env
+backend/.venv/
+backend/micromanager.db
+backend/__pycache__/
+backend/app/__pycache__/
+.vscode/
+.DS_Store
+
