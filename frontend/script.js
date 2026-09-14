@@ -2,8 +2,7 @@ if (localStorage.getItem("microManagerLoggedIn") !== "true") {
     window.location.href = "login.html";
 }
 
-const API_URL = "http://localhost:8010";
-
+const API_URL = "https://micromanager-exsv.onrender.com";
 const transcriptInput = document.getElementById("transcript");
 const processButton = document.getElementById("processButton");
 const processingState = document.getElementById("processing");
