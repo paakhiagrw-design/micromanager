@@ -1,102 +1,72 @@
 import {
+    initializeApp,
+    getApp,
+    getApps
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+    getAuth,
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 import {
-    auth
+    firebaseConfig
 } from "./firebase-config.js";
 
 
-document.documentElement.style.visibility =
-    "hidden";
+const app = getApps().length > 0
+    ? getApp()
+    : initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
 
 
-onAuthStateChanged(
-    auth,
-    user => {
-
-        if (!user) {
-
-            window.location.replace(
-                "login.html"
-            );
-
-            return;
-
-        }
+document.documentElement.style.visibility = "hidden";
 
 
-        document.documentElement.style.visibility =
-            "visible";
+onAuthStateChanged(auth, user => {
 
+    if (!user) {
 
-        const name =
-            user.displayName ||
-            user.email?.split("@")[0] ||
-            "User";
+        localStorage.removeItem("microManagerLoggedIn");
+        localStorage.removeItem("microManagerUserName");
+        localStorage.removeItem("microManagerUserEmail");
 
-
-        const initial =
-            name.charAt(0).toUpperCase();
-
-
-        const profileName =
-            document.getElementById(
-                "profileName"
-            );
-
-
-        const profileInitial =
-            document.getElementById(
-                "profileInitial"
-            );
-
-
-        const topAvatarInitial =
-            document.getElementById(
-                "topAvatarInitial"
-            );
-
-
-        if (profileName) {
-
-            profileName.textContent =
-                name;
-
-        }
-
-
-        if (profileInitial) {
-
-            profileInitial.textContent =
-                initial;
-
-        }
-
-
-        if (topAvatarInitial) {
-
-            topAvatarInitial.textContent =
-                initial;
-
-        }
-
-
-        console.log(
-            "Logged in as:",
-            user.email
-        );
+        window.location.replace("login.html");
+        return;
 
     }
-);
+
+    const name =
+        user.displayName ||
+        user.email?.split("@")[0] ||
+        "User";
+
+    const email = user.email || "";
+
+    localStorage.setItem("microManagerLoggedIn", "true");
+    localStorage.setItem("microManagerUserName", name);
+    localStorage.setItem("microManagerUserEmail", email);
+
+    const initial =
+        name.trim().charAt(0).toUpperCase() || "U";
+
+    setText("profileName", name);
+    setText("profileInitial", initial);
+    setText("topAvatarInitial", initial);
+    setText("largeProfileInitial", initial);
+    setText("profilePageName", name);
+    setText("greetingName", name.split(" ")[0]);
+
+    document.documentElement.style.visibility = "visible";
+
+    console.log("Logged in as:", email);
+
+});
 
 
-const logoutButton =
-    document.getElementById(
-        "logoutButton"
-    );
-
+const logoutButton = document.getElementById("logoutButton");
 
 if (logoutButton) {
 
@@ -105,30 +75,39 @@ if (logoutButton) {
         async event => {
 
             event.preventDefault();
-
             event.stopImmediatePropagation();
-
 
             try {
 
                 await signOut(auth);
 
-                window.location.replace(
-                    "login.html"
-                );
+                localStorage.removeItem("microManagerLoggedIn");
+                localStorage.removeItem("microManagerUserName");
+                localStorage.removeItem("microManagerUserEmail");
+                localStorage.removeItem("microManagerWorkspace");
+
+                window.location.replace("login.html");
 
             } catch (error) {
 
-                console.error(error);
-
-                alert(
-                    "Could not log out."
-                );
+                console.error("Logout failed:", error);
+                alert("Could not log out. Please try again.");
 
             }
 
         },
         true
     );
+
+}
+
+
+function setText(id, value) {
+
+    const element = document.getElementById(id);
+
+    if (element) {
+        element.textContent = value;
+    }
 
 }
